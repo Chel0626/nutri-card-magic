@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Nutritionist brand colors
+        'nutri-dark': 'hsl(var(--nutri-dark-green))',
+        'nutri-light': 'hsl(var(--nutri-light-green))',
+        'nutri-gold': 'hsl(var(--nutri-gold))',
+        'nutri-gold-subtle': 'hsl(var(--nutri-gold-subtle))',
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -57,6 +62,20 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      fontFamily: {
+        heading: ['var(--font-heading)'],
+        script: ['var(--font-script)'],
+        body: ['var(--font-body)'],
+        sans: ['var(--font-body)'],
+      },
+      backgroundImage: {
+        'gradient-nutri': 'var(--gradient-nutri)',
+        'gradient-gold': 'var(--gradient-gold)',
+      },
+      boxShadow: {
+        'card': 'var(--shadow-card)',
+        'phone': 'var(--shadow-phone)',
       },
       borderRadius: {
         lg: "var(--radius)",
