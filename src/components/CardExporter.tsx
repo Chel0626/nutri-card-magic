@@ -20,26 +20,49 @@ const CardExporter = () => {
     { component: Card4, ref: card4Ref, title: 'Card 4 - Indicação + Contato' }
   ];
 
-  const downloadCard = async (cardRef: React.RefObject<HTMLDivElement>, fileName: string) => {
+  const downloadCard = async (cardRef: React.RefObject<HTMLDivElement>, fileName: string, format: 'png' | 'jpg' | 'pdf' = 'png') => {
     if (!cardRef.current) return;
 
     try {
+      // Wait for images to load and fonts to render
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const canvas = await html2canvas(cardRef.current, {
         width: 1080,
         height: 1350,
-        scale: 1,
+        scale: 2, // Higher resolution
         useCORS: true,
         allowTaint: true,
-        backgroundColor: null,
-        logging: false
+        backgroundColor: '#ffffff',
+        logging: false,
+        ignoreElements: (element) => {
+          // Ignore scale transform wrapper
+          return element.classList.contains('scale-transform-wrapper');
+        }
       });
 
-      const link = document.createElement('a');
-      link.download = `${fileName}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (format === 'pdf') {
+        // For PDF, we'll use jsPDF
+        const { jsPDF } = await import('jspdf');
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: [1080, 1350]
+        });
+        
+        pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, 1080, 1350);
+        pdf.save(`${fileName}.pdf`);
+      } else {
+        const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const quality = format === 'jpg' ? 0.95 : 1.0;
+        
+        const link = document.createElement('a');
+        link.download = `${fileName}.${format}`;
+        link.href = canvas.toDataURL(mimeType, quality);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch (error) {
       console.error('Erro ao baixar a imagem:', error);
       alert('Erro ao baixar a imagem. Tente novamente.');
@@ -82,25 +105,41 @@ const CardExporter = () => {
           const CardComponent = card.component;
           return (
             <div key={index} className="flex flex-col items-center">
-              {/* Card title and download button */}
+              {/* Card title and download buttons */}
               <div className="flex items-center gap-4 mb-6">
                 <ImageIcon className="w-6 h-6 text-nutri-dark" />
                 <h2 className="font-heading text-2xl font-bold text-nutri-dark">
                   {card.title}
                 </h2>
-                <button
-                  onClick={() => downloadCard(card.ref, `instagram-card-${index + 1}`)}
-                  className="bg-nutri-gold text-nutri-dark px-6 py-3 rounded-xl font-heading font-semibold hover:bg-nutri-gold/80 transition-colors duration-200 flex items-center gap-2"
-                >
-                  <Download className="w-5 h-5" />
-                  Baixar
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => downloadCard(card.ref, `instagram-card-${index + 1}`, 'png')}
+                    className="bg-nutri-gold text-nutri-dark px-4 py-2 rounded-lg font-heading font-semibold hover:bg-nutri-gold/80 transition-colors duration-200 flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    PNG
+                  </button>
+                  <button
+                    onClick={() => downloadCard(card.ref, `instagram-card-${index + 1}`, 'jpg')}
+                    className="bg-nutri-light text-nutri-dark px-4 py-2 rounded-lg font-heading font-semibold hover:bg-nutri-light/80 transition-colors duration-200 flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    JPG
+                  </button>
+                  <button
+                    onClick={() => downloadCard(card.ref, `instagram-card-${index + 1}`, 'pdf')}
+                    className="bg-nutri-dark text-white px-4 py-2 rounded-lg font-heading font-semibold hover:bg-nutri-dark/80 transition-colors duration-200 flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    PDF
+                  </button>
+                </div>
               </div>
               
               {/* Card preview - scaled down for viewing */}
               <div className="relative">
                 <div 
-                  className="transform scale-[0.3] origin-top"
+                  className="scale-transform-wrapper transform scale-[0.3] origin-top"
                   style={{ 
                     width: '1080px', 
                     height: '1350px',
@@ -123,10 +162,10 @@ const CardExporter = () => {
           Como usar:
         </h3>
         <ul className="font-body text-nutri-dark space-y-2">
-          <li>• Clique em "Baixar" em cada card para salvar individualmente</li>
-          <li>• Use "Baixar Todos os Cards" para salvar todos de uma vez</li>
+          <li>• Escolha o formato: <strong>PNG</strong> (melhor qualidade), <strong>JPG</strong> (menor tamanho) ou <strong>PDF</strong></li>
+          <li>• Use "Baixar Todos os Cards" para salvar todos em PNG de uma vez</li>
           <li>• As imagens são salvas no tamanho correto: 1080x1350px</li>
-          <li>• Formato PNG com alta qualidade para Instagram</li>
+          <li>• Qualidade alta e otimizada para Instagram</li>
         </ul>
       </div>
     </div>

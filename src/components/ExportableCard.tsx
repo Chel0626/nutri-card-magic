@@ -10,14 +10,21 @@ const ExportableCard = forwardRef<HTMLDivElement, ExportableCardProps>(
     return (
       <div 
         ref={ref}
-        className="relative bg-white"
+        className="relative bg-white overflow-hidden"
         style={{ 
           width: '1080px', 
           height: '1350px',
-          fontSize: '16px' // Base font size for export
+          fontSize: '16px',
+          position: 'relative',
+          minWidth: '1080px',
+          minHeight: '1350px',
+          transform: 'none',
+          transformOrigin: 'unset'
         }}
       >
-        {children}
+        <div className="w-full h-full">
+          {children}
+        </div>
       </div>
     );
   }
