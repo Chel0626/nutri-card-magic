@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Card1 from './Card1';
 import Card2 from './Card2';
 import Card3 from './Card3';
@@ -32,9 +33,18 @@ const InstagramCarousel = () => {
         <h2 className="font-heading text-3xl font-bold text-nutri-dark mb-2">
           Carrossel Instagram - Nutricionista
         </h2>
-        <p className="font-body text-nutri-dark/70">
+        <p className="font-body text-nutri-dark/70 mb-4">
           {cardTitles[currentCard]} ({currentCard + 1}/4)
         </p>
+        
+        {/* Download button */}
+        <Link 
+          to="/export"
+          className="inline-flex items-center gap-2 bg-nutri-gold text-nutri-dark px-6 py-3 rounded-xl font-heading font-semibold hover:bg-nutri-gold/80 transition-colors duration-200"
+        >
+          <Download className="w-5 h-5" />
+          Baixar Cards
+        </Link>
       </div>
 
       {/* Carousel container */}
