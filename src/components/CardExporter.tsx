@@ -25,19 +25,27 @@ const CardExporter = () => {
 
     try {
       // Wait for images to load and fonts to render
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const canvas = await html2canvas(cardRef.current, {
+      // Find the actual card element, not the wrapper
+      const cardElement = cardRef.current.querySelector('div[style*="width: 1080px"]') || cardRef.current;
+      
+      const canvas = await html2canvas(cardElement as HTMLElement, {
         width: 1080,
         height: 1350,
         scale: 2, // Higher resolution
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: '#ffffff',
-        logging: false,
-        ignoreElements: (element) => {
-          // Ignore scale transform wrapper
-          return element.classList.contains('scale-transform-wrapper');
+        logging: true,
+        foreignObjectRendering: true,
+        onclone: (clonedDoc) => {
+          // Remove any transform styles from the cloned document
+          const clonedElement = clonedDoc.querySelector('[class*="scale"]');
+          if (clonedElement) {
+            (clonedElement as HTMLElement).style.transform = 'none';
+            (clonedElement as HTMLElement).style.transformOrigin = 'unset';
+          }
         }
       });
 
@@ -138,15 +146,23 @@ const CardExporter = () => {
               
               {/* Card preview - scaled down for viewing */}
               <div className="relative">
+                {/* Hidden card for export (full size) */}
+                <div className="absolute opacity-0 pointer-events-none" style={{ top: '-9999px' }}>
+                  <ExportableCard ref={card.ref} cardNumber={index + 1}>
+                    <CardComponent />
+                  </ExportableCard>
+                </div>
+                
+                {/* Visible scaled preview */}
                 <div 
-                  className="scale-transform-wrapper transform scale-[0.3] origin-top"
+                  className="transform scale-[0.3] origin-top"
                   style={{ 
                     width: '1080px', 
                     height: '1350px',
                     marginBottom: '-945px' // Adjust for scaled height
                   }}
                 >
-                  <ExportableCard ref={card.ref} cardNumber={index + 1}>
+                  <ExportableCard cardNumber={index + 1}>
                     <CardComponent />
                   </ExportableCard>
                 </div>
