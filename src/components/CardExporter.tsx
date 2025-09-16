@@ -24,33 +24,44 @@ const CardExporter = () => {
     if (!cardRef.current) return;
 
     try {
-      // Wait for images to load and fonts to render
+      // Wait for fonts and images to load
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find the actual card element, not the wrapper
-      const cardElement = cardRef.current.querySelector('div[style*="width: 1080px"]') || cardRef.current;
+      // Temporarily make the hidden element visible for capture
+      const hiddenElement = cardRef.current;
+      const originalStyle = {
+        opacity: hiddenElement.style.opacity,
+        position: hiddenElement.style.position,
+        zIndex: hiddenElement.style.zIndex,
+        transform: hiddenElement.style.transform
+      };
       
-      const canvas = await html2canvas(cardElement as HTMLElement, {
+      hiddenElement.style.opacity = '1';
+      hiddenElement.style.position = 'static';
+      hiddenElement.style.zIndex = '9999';
+      hiddenElement.style.transform = 'none';
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(hiddenElement, {
         width: 1080,
         height: 1350,
-        scale: 2, // Higher resolution
+        scale: 1,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: true,
-        foreignObjectRendering: true,
-        onclone: (clonedDoc) => {
-          // Remove any transform styles from the cloned document
-          const clonedElement = clonedDoc.querySelector('[class*="scale"]');
-          if (clonedElement) {
-            (clonedElement as HTMLElement).style.transform = 'none';
-            (clonedElement as HTMLElement).style.transformOrigin = 'unset';
-          }
-        }
+        logging: false,
+        removeContainer: false,
+        imageTimeout: 3000
       });
 
+      // Restore original state
+      hiddenElement.style.opacity = originalStyle.opacity;
+      hiddenElement.style.position = originalStyle.position;
+      hiddenElement.style.zIndex = originalStyle.zIndex;
+      hiddenElement.style.transform = originalStyle.transform;
+
       if (format === 'pdf') {
-        // For PDF, we'll use jsPDF
         const { jsPDF } = await import('jspdf');
         const pdf = new jsPDF({
           orientation: 'portrait',
@@ -145,14 +156,7 @@ const CardExporter = () => {
               </div>
               
               {/* Card preview - scaled down for viewing */}
-              <div className="relative">
-                {/* Hidden card for export (full size) */}
-                <div className="absolute opacity-0 pointer-events-none" style={{ top: '-9999px' }}>
-                  <ExportableCard ref={card.ref} cardNumber={index + 1}>
-                    <CardComponent />
-                  </ExportableCard>
-                </div>
-                
+              <div className="relative overflow-hidden">
                 {/* Visible scaled preview */}
                 <div 
                   className="transform scale-[0.3] origin-top"
@@ -163,6 +167,23 @@ const CardExporter = () => {
                   }}
                 >
                   <ExportableCard cardNumber={index + 1}>
+                    <CardComponent />
+                  </ExportableCard>
+                </div>
+                
+                {/* Hidden full-size card for export */}
+                <div 
+                  className="absolute opacity-0 pointer-events-none"
+                  style={{ 
+                    position: 'fixed',
+                    top: '100vh',
+                    left: '0',
+                    width: '1080px', 
+                    height: '1350px',
+                    zIndex: '-1'
+                  }}
+                >
+                  <ExportableCard ref={card.ref} cardNumber={index + 1}>
                     <CardComponent />
                   </ExportableCard>
                 </div>
